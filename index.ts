@@ -48,15 +48,19 @@ import {map} from 'async';
 const sleep = (time) =>
     new Promise((resolve) => setTimeout(resolve, time * 1000));
 
-(async () => {
-    console.log('Tasks are starting!!');
-    const data = await map([1, 2, 3, 4, 5], async (i) => {
-        console.info(`Task ${i} started!`);
-        const second = Math.floor(Math.random() * 5 + 1);
-        await sleep(second);
-        console.info(`Task ${i} completed!`);
-        return i;
+console.log('Tasks are starting!!');
+
+map([1, 2, 3, 4, 5], async (i) => {
+    console.info(`Task ${i} started!`);
+    const second = Math.floor(Math.random() * 5 + 1);
+    await sleep(second);
+    console.info(`Task ${i} completed!`);
+    return i;
+})
+    .then((data) => {
+        console.info('data', data);
+        console.info('DONE!');
+    })
+    .catch((e) => {
+        console.log('DONE ERR', e);
     });
-    console.info('data', data);
-    console.info('DONE!');
-})();

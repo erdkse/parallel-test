@@ -26,6 +26,7 @@
         "yaml": "2.0.0-8"
     },
     "devDependencies": {
+        "@types/async": "^3.2.8",
         "@types/jest": "27.0.2",
         "@types/node": "16.11.3",
         "@types/yaml": "^1.9.7",
