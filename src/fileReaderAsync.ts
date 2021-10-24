@@ -1,6 +1,5 @@
 import * as path from 'path';
 import * as micromatch from 'micromatch';
-import log from 'loglevel';
 import * as fs from 'fs';
 import {v4 as uuidv4} from 'uuid';
 import {LineCounter, parseAllDocuments} from 'yaml';
@@ -64,7 +63,7 @@ export class FileReaderAsync {
                     fileEntry.isExcluded = true;
                 } else if ((await this.getFileStats(filePath))?.isDirectory()) {
                     if (depth === appConfig.folderReadsMaxDepth) {
-                        log.warn(
+                        console.warn(
                             `[readFiles]: Ignored ${filePath} because max depth was reached.`,
                         );
                     } else {
@@ -93,7 +92,7 @@ export class FileReaderAsync {
                             resourceMap[resource.id] = resource;
                         });
                     } catch (e) {
-                        log.warn(
+                        console.warn(
                             `Failed to parse yaml in file ${fileEntry.name}; ${e}`,
                         );
                     }
@@ -156,7 +155,7 @@ export class FileReaderAsync {
                 fileEntry.isExcluded = true;
             } else if ((await this.getFileStats(filePath))?.isDirectory()) {
                 if (depth === appConfig.folderReadsMaxDepth) {
-                    log.warn(
+                    console.warn(
                         `[readFiles]: Ignored ${filePath} because max depth was reached.`,
                     );
                 } else {
@@ -201,7 +200,7 @@ export class FileReaderAsync {
             return fs.promises.stat(filePath);
         } catch (err) {
             if (err instanceof Error) {
-                log.warn(`[getFileStats]: ${err.message}`);
+                console.warn(`[getFileStats]: ${err.message}`);
             }
         }
         return undefined;
@@ -229,7 +228,7 @@ export class FileReaderAsync {
             let docIndex = 0;
             documents.forEach((doc) => {
                 if (doc.errors.length > 0) {
-                    log.warn(
+                    console.warn(
                         `Ignoring document ${docIndex} in ${
                             path.parse(relativePath).name
                         } due to ${doc.errors.length} error(s)`,

@@ -4,6 +4,7 @@
     "main": "index.ts",
     "scripts": {
         "start": "node build/index.js",
+        "debug": "node --inspect build/index.js",
         "clean": "rimraf coverage build tmp",
         "prebuild": "npm run lint",
         "build": "tsc --declaration -p tsconfig.release.json",
@@ -18,7 +19,6 @@
     },
     "dependencies": {
         "async": "^3.2.1",
-        "loglevel": "^1.7.1",
         "micromatch": "^4.0.4",
         "sleep": "^6.3.0",
         "tslib": "2.3.1",
