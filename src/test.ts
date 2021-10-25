@@ -1,7 +1,7 @@
-import * as fs from 'fs';
+import fs from 'fs';
 
 export class Test {
-    public getFileSizeInBytes(file, callback) {
+    public getFileSizeInBytes(file: string, callback: any) {
         fs.stat(file, function (err, stat) {
             if (err) {
                 return callback(err);

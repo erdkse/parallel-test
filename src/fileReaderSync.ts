@@ -1,6 +1,6 @@
-import * as path from 'path';
-import * as micromatch from 'micromatch';
-import * as fs from 'fs';
+import path from 'path';
+import micromatch from 'micromatch';
+import fs from 'fs';
 import {v4 as uuidv4} from 'uuid';
 import {LineCounter, parseAllDocuments} from 'yaml';
 

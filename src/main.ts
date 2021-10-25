@@ -1,9 +1,9 @@
 import {parallelLimit} from 'async';
-import * as sleepFn from 'sleep';
-export default class Main {
+import sleepFn from 'sleep';
+export class Main {
     private readonly tasks = [1, 2, 3, 4, 5];
 
-    public async logTime(fn) {
+    public async logTime(fn: any) {
         const start: Date = new Date();
         await fn();
         console.log(
@@ -11,7 +11,7 @@ export default class Main {
         );
     }
 
-    private readonly fn = async (index) => {
+    private readonly fn = async (index: number) => {
         const time = Math.floor(Math.random() * 10) + 1;
         // let i = 0;
         //   while (i < time * 1000000000) {
@@ -22,7 +22,7 @@ export default class Main {
         return index;
     };
 
-    public async sleep(time) {
+    public async sleep(time: number) {
         return new Promise((resolve) => setTimeout(resolve, time));
     }
 

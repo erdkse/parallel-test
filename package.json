@@ -2,8 +2,11 @@
     "name": "typescript-library-boilerplate",
     "version": "0.0.0",
     "main": "index.ts",
+    "type": "module",
     "scripts": {
         "start": "node build/index.js",
+        "start:sync": "SYNC=true node --experimental-specifier-resolution=node build/index.js ",
+        "start:async": "SYNC=false node --experimental-specifier-resolution=node build/index.js ",
         "debug": "node --inspect build/index.js",
         "clean": "rimraf coverage build tmp",
         "prebuild": "npm run lint",
@@ -28,7 +31,10 @@
     "devDependencies": {
         "@types/async": "^3.2.8",
         "@types/jest": "27.0.2",
+        "@types/micromatch": "^4.0.2",
         "@types/node": "16.11.3",
+        "@types/sleep": "^0.0.8",
+        "@types/uuid": "^8.3.1",
         "@types/yaml": "^1.9.7",
         "@typescript-eslint/eslint-plugin": "5.1.0",
         "@typescript-eslint/parser": "5.1.0",

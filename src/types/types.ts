@@ -158,7 +158,7 @@ export interface AppConfig {
         autoZoomGraphOnSelection: boolean;
         helmPreviewMode: 'template' | 'install';
         loadLastFolderOnStartup: boolean;
-    };
+    } | null;
     recentFolders: string[];
     newVersion: {
         code: NewVersionCode;

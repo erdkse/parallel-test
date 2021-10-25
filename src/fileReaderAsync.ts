@@ -1,6 +1,6 @@
-import * as path from 'path';
-import * as micromatch from 'micromatch';
-import * as fs from 'fs';
+import path from 'path';
+import micromatch from 'micromatch';
+import fs from 'fs';
 import {v4 as uuidv4} from 'uuid';
 import {LineCounter, parseAllDocuments} from 'yaml';
 import {map} from 'async';
@@ -29,8 +29,7 @@ export class FileReaderAsync {
         depth = 1,
     ) {
         const files = await fs.promises.readdir(folder);
-        console.log('files', files);
-        const result: string[] = [];
+        let result: string[] = [];
 
         // if there is no root entry assume this is the root folder (questionable..)
         if (!fileMap[ROOT_FILE_ENTRY]) {
@@ -41,7 +40,7 @@ export class FileReaderAsync {
 
         // is this a helm chart folder?
         if (this.isHelmChartFolder(files)) {
-            this.processHelmChartFolder(
+            const helmChartResult: string[] = await this.processHelmChartFolder(
                 folder,
                 rootFolder,
                 files,
@@ -50,11 +49,11 @@ export class FileReaderAsync {
                 fileMap,
                 helmChartMap,
                 helmValuesMap,
-                result,
                 depth,
             );
+            result = [...result, ...helmChartResult];
         } else {
-            const data = await map(files, async (file) => {
+            result = await map(files, async (file) => {
                 const filePath = path.join(folder, file);
                 console.log(`Task ${filePath} has started!`);
                 const fileEntryPath = filePath.substr(rootFolder.length);
@@ -99,14 +98,10 @@ export class FileReaderAsync {
                 }
 
                 fileMap[fileEntry.filePath] = fileEntry;
-                result.push(fileEntry.name);
                 console.log(`Task ${filePath} has finished!`);
                 return fileEntry.name;
             });
-
-            console.log('data', data);
         }
-        console.log('result', result);
 
         return result;
     }
@@ -136,9 +131,8 @@ export class FileReaderAsync {
         fileMap: FileMapType,
         helmChartMap: HelmChartMapType,
         helmValuesMap: HelmValuesMapType,
-        result: string[],
         depth: number,
-    ) {
+    ): Promise<string[]> {
         const helmChart: HelmChart = {
             id: uuidv4(),
             filePath: path.join(folder, 'Chart.yaml').substr(rootFolder.length),
@@ -146,47 +140,51 @@ export class FileReaderAsync {
             valueFileIds: [],
         };
 
-        await map(files, async (file) => {
-            const filePath = path.join(folder, file);
-            const fileEntryPath = filePath.substr(rootFolder.length);
-            const fileEntry = this.createFileEntry(fileEntryPath);
+        const result: string[] = await map(
+            files,
+            async (file): Promise<string> => {
+                const filePath = path.join(folder, file);
+                const fileEntryPath = filePath.substr(rootFolder.length);
+                const fileEntry = this.createFileEntry(fileEntryPath);
 
-            if (this.fileIsExcluded(appConfig, fileEntry)) {
-                fileEntry.isExcluded = true;
-            } else if ((await this.getFileStats(filePath))?.isDirectory()) {
-                if (depth === appConfig.folderReadsMaxDepth) {
-                    console.warn(
-                        `[readFiles]: Ignored ${filePath} because max depth was reached.`,
-                    );
-                } else {
-                    fileEntry.children = await this.readFiles(
-                        filePath,
-                        appConfig,
-                        resourceMap,
-                        fileMap,
-                        helmChartMap,
-                        helmValuesMap,
-                        depth + 1,
-                    );
+                if (this.fileIsExcluded(appConfig, fileEntry)) {
+                    fileEntry.isExcluded = true;
+                } else if ((await this.getFileStats(filePath))?.isDirectory()) {
+                    if (depth === appConfig.folderReadsMaxDepth) {
+                        console.warn(
+                            `[readFiles]: Ignored ${filePath} because max depth was reached.`,
+                        );
+                    } else {
+                        fileEntry.children = await this.readFiles(
+                            filePath,
+                            appConfig,
+                            resourceMap,
+                            fileMap,
+                            helmChartMap,
+                            helmValuesMap,
+                            depth + 1,
+                        );
+                    }
+                } else if (micromatch.isMatch(file, '*values*.yaml')) {
+                    const helmValues: HelmValuesFile = {
+                        id: uuidv4(),
+                        filePath: fileEntryPath,
+                        name: file,
+                        isSelected: false,
+                        helmChartId: helmChart.id,
+                    };
+
+                    helmValuesMap[helmValues.id] = helmValues;
+                    helmChart.valueFileIds.push(helmValues.id);
                 }
-            } else if (micromatch.isMatch(file, '*values*.yaml')) {
-                const helmValues: HelmValuesFile = {
-                    id: uuidv4(),
-                    filePath: fileEntryPath,
-                    name: file,
-                    isSelected: false,
-                    helmChartId: helmChart.id,
-                };
 
-                helmValuesMap[helmValues.id] = helmValues;
-                helmChart.valueFileIds.push(helmValues.id);
-            }
-
-            fileMap[fileEntry.filePath] = fileEntry;
-            result.push(fileEntry.name);
-        });
+                fileMap[fileEntry.filePath] = fileEntry;
+                return fileEntry.name;
+            },
+        );
 
         helmChartMap[helmChart.id] = helmChart;
+        return result;
     }
 
     public fileIsExcluded(appConfig: AppConfig, fileEntry: FileEntry) {
@@ -203,7 +201,7 @@ export class FileReaderAsync {
                 console.warn(`[getFileStats]: ${err.message}`);
             }
         }
-        return undefined;
+        return Promise.resolve(undefined);
     }
 
     public async extractK8sResourcesFromFile(
