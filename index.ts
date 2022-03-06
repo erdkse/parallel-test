@@ -1,35 +1,22 @@
-// import {Main} from './src/main';
-import {FileReaderSync} from './src/fileReaderSync';
-import {FileReaderAsync} from './src/fileReaderAsync';
-import {appConfig} from './src/types/consts';
+import { StaticPool } from 'node-worker-threads-pool';
 
-const RESOURCE_MAP = {};
+const filePath = './build/src/worker/thread-entry.js';
 
-const fileReaderSync = new FileReaderSync();
-const fileReaderAsync = new FileReaderAsync();
+const pool = new StaticPool({
+  size: 4,
+  task: filePath,
+  workerData: 'workerData!'
+});
 
-const ROOT_FOLDER = '/Users/erdkse/Projects/Kubeshop/argo-rollouts';
+for (let i = 0; i < 20; i++) {
+  (async () => {
+    const num = 40 + Math.trunc(10 * Math.random());
 
-// const rootEntry = fileReaderSync.createFileEntry(ROOT_FOLDER);
+    // This will choose one idle worker in the pool
+    // to execute your heavy task without blocking
+    // the main thread!
+    const res = await pool.exec(num);
 
-const start: Date = new Date();
-
-if (process.env.SYNC === 'true') {
-    fileReaderSync.readFiles(ROOT_FOLDER, appConfig, RESOURCE_MAP, {}, {}, {});
-    console.log(
-        `Completed after ${new Date().getTime() - start.getTime()} seconds`,
-    );
-} else {
-    fileReaderAsync
-        .readFiles(ROOT_FOLDER, appConfig, RESOURCE_MAP, {}, {}, {})
-        .then(() => {
-            console.log(
-                `Completed after ${
-                    new Date().getTime() - start.getTime()
-                } seconds`,
-            );
-        })
-        .catch((e) => {
-            console.log('ERROR', e);
-        });
+    console.log(`Fibonacci(${num}) result:`, res);
+  })();
 }

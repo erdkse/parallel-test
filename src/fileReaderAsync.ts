@@ -142,7 +142,7 @@ export class FileReaderAsync {
 
         const result: string[] = await map(
             files,
-            async (file): Promise<string> => {
+            async (file)=> {
                 const filePath = path.join(folder, file);
                 const fileEntryPath = filePath.substr(rootFolder.length);
                 const fileEntry = this.createFileEntry(fileEntryPath);
